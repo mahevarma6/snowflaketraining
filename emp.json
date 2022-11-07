@@ -1,0 +1,20 @@
+{
+	"deptName": "sales",
+	"deptno": "10",
+	"deptLocation": "Hyderbad",
+	"deptLocState": "TA",
+	"EmployeeDtls": [
+		{
+			"empno": "7782",
+			"ename": "JOHN",
+			"job": "MANAGER",
+			"hiredate": "1981-06-09"
+		},
+		{
+			"empno": "7394",
+			"ename": "MILLER",
+			"job": "CLERK",
+			"hiredate": "1982-01-23"
+		}
+	]
+}
