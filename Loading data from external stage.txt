@@ -1,0 +1,62 @@
+Loading data Using the Web Interface
+
+Snowflake web interface provides a convenient wizard for loading limited amounts 
+of data into a table from a small set of flat files.
+
+Behind the scenes, the wizard uses the PUT and COPY commands to load data
+
+however, the wizard simplifies the data loading process by combining the two phases (staging files and loading data) 
+into a single operation and deleting all staged files after the load completes.
+
+The wizard is only intended for loading small numbers of files of limited size (up to 50 MB). 
+
+This file size limit is intended to ensure better performance because browser performance varies from computer to computer and between different browser versions. 
+Also, the memory consumption required to encrypt larger files might cause a browser to run out of memory and crash.
+
+compression - Definition
+When loading data, specifies the current compression algorithm for the data file. Snowflake uses this option to detect
+how an already-compressed data file was compressed so that the compressed data in the file can be extracted for loading.
+
+-- null if
+When loading data, Snowflake replaces these strings in the data load source with SQL NULL.
+To specify more than one string, enclose the list of strings in parentheses and use commas to separate each value.
+
+-- Staging area in snowflake is a storage area where you load all your raw files before loading them into snowflake
+
+-- which blob storages areas we can use ?
+--aws, azure, blob
+
+-- Interal -- if we dont have subscription to cloud
+
+create or replace TABLE EMP_aws (
+	ID NUMBER NOT NULL,
+	FIRST_NAME string,
+	LAST_NAME string,
+	EMAIL string,
+	GENDER string,
+	IP_ADDRESS string
+); 
+
+-- please make sure cloud api credentials and bucket name are valid
+
+create or replace stage ext_stage url='s3://awss3demo101/'
+credentials=(aws_key_id='AKI4IO3BOEDFLV2HW' aws_secret_key='0BIvBKQrPtmeJhTTiUmNtvvskSybhvW+');
+
+list @ext_stage
+
+desc stage ext_stage
+
+
+alter stage ext_stage set credentials=(aws_key_id='d4c3b2a1' aws_secret_key='z9y8x7w6');
+
+ create or replace file format csv_format
+ type = csv field_delimiter = ',' skip_header = 1 empty_field_as_null = true ;
+ 
+ desc file format csv_format
+
+copy into EMP_aws
+from @ext_stage
+file_format = (FORMAT_NAME='csv_format')
+on_error = 'skip_file';
+
+
