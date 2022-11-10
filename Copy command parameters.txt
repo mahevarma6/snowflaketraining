@@ -1,0 +1,126 @@
+-- Data Validation
+
+create database data_validation
+
+create stage data_validation
+
+create or replace table users (id varchar,first_name varchar(50),last_name
+varchar(50),email varchar(50),gender varchar(50),ip_address varchar(50))
+
+
+put file:///D:\Datasets\users_dataset\ @data_validation
+
+remove @data_validation
+ 
+--list files on stage :
+
+list @data_validation
+
+------------validation mode -----------------------------------------------
+
+copy into users
+from @data_validation
+file_format=(type=csv skip_header = 1)
+validation_mode = return_errors -- return_n_rows
+
+--validation mode wont allow copy command to copy data into table, validation mode is useful for verfiying/validating the data
+
+copy into users
+from @data_validation
+file_format=(type=csv skip_header = 1)
+validation_mode = return_200000_rows
+
+
+list @data_validation
+
+---------------------------------files ------------------------------------------------------
+copy into users
+from @data_validation
+file_format=(type=csv skip_header = 1)
+files =('sales.csv.gz','Users_data3.csv.gz')
+
+------------------------------------------on error -----------------------------------------
+copy into users
+from @data_validation
+file_format=(type=csv skip_header = 1)
+on_error = 'continue' 
+--019c1f0b-0000-12ff-0001-064200028d1e
+
+------------------------------------------on error -----------------------------------------
+copy into users
+from @data_validation
+file_format=(type=csv skip_header = 1)
+on_error = 'skip_file'
+
+truncate users
+
+
+copy into users
+from @data_validation
+file_format=(type=csv skip_header = 1)
+on_error = 'skip_file_10'
+
+
+copy into users
+from @data_validation
+file_format=(type=csv skip_header = 1)
+on_error = 'skip_file_10%'
+
+
+copy into users
+from @data_validation
+file_format=(type=csv skip_header = 1)
+on_error = 'abort_statement'
+
+---------------------process rejected records
+copy into users
+from @data_validation
+file_format=(type=csv skip_header = 1)
+on_error = 'continue' 
+--019c1f25-0000-12ff-0001-064200028f7e ;
+
+create table users_rejected_records as
+select * from table(validate(users,job_id=>'019c1f25-0000-12ff-0001-064200028f7e'))
+
+set query_id = last_query_id()
+
+select * from table(result_scan(last_query_id(-1)))
+
+select * from users_rejected_records
+
+
+---- truncate columns
+
+copy into users
+from @data_validation
+file_format=(type=csv skip_header = 1)
+--on_error = 'skip_file'
+--truncatecolumns = true
+--enforce_length = false
+
+
+---------------------------------- pattern---------------------------------------------------------
+
+copy into users
+from @data_validation
+file_format=(type=csv skip_header = 1)
+pattern = '.*sales.*[.]csv[.]gz'
+
+.* is intrepreted as zero or more occurance of any character
+the square brackers escpes the period characther(.) that preced a file exptensions
+
+-------------------------
+
+create or replace table users (file_name string, row_number string,id varchar,first_name varchar(50),last_name
+varchar(50),email varchar(50),gender varchar(50),ip_address varchar(50))
+
+--access and query data directly from stage without loading it into snowflake
+select $3,$1, $2 from @data_validation
+
+select * from users
+copy into users 
+from (select metadata$filename,metadata$file_row_number,c.$1,c.$2,c.$3,c.$4,c.$5,c.$6 from @data_validation c)
+file_format =(type=csv skip_header =1)
+truncatecolumns = true
+
+
