@@ -1,0 +1,118 @@
+drop database demo
+
+-- Cloning Tables
+-- Create a sample table
+Create or replace database demo
+create schema cloning
+CREATE OR REPLACE TABLE demo.cloning.employees
+ (emp_id number,
+ first_name varchar,
+ last_name varchar
+ );
+-- Populate the table with some seed records.
+Insert into demo.cloning.employees
+values(100,'John','Smith'),
+ (200,'Sam','White'),
+ (300,'Bob','Jones'),
+ (400,'Linda','Carter');
+-- Show the content of the table employees in the demo_db database and the public schema
+select * from demo.cloning.employees;
+ 
+-- Create a clone of the table
+CREATE OR REPLACE TABLE demo.cloning.employees_clone
+  CLONE employees;
+ 
+-- Show the content of the clone which should be the same as the original table that it was cloned from.
+select * from demo.cloning.employees_clone;
+ 
+-- Add one more record to the clone table
+insert into demo.cloning.employees_clone values(500,'Mike','Jones');
+ 
+-- Verify the content of the clone table to show the original set of records and the additional new record that we just added
+select * from demo.cloning.employees_clone;
+ 
+-- Verify the content of the original employees table.  It should be the original content without the record we added to the clone.
+select * from demo.cloning.employees
+ 
+-- Yet another SQL to show all the records in the employees table but not in the employees clone table.
+-- The result should be just the new employee record of "Mike Jones" that was added to the employees_clone table.
+select * from demo.cloning.employees_clone
+minus
+select * from demo.cloning.employees;
+ 
+-- Add one new record to the original employee table to show all the records in the employees table but not in the employees clone table. 
+--  The result should be just the new employee record of "George Brown" that was added to the employees table.
+insert into demo.cloning.employees
+values(600,'George','Brown');
+ 
+select * from demo.cloning.employees
+minus
+select * from demo.cloning.employees_clone;
+ 
+-- Delete emp_id 100 from the employees table.
+delete from demo.cloning.employees where emp_id = 100;
+ 
+-- Check the content of the employees table.  The employee with Emp_id = 100 is no longer there
+select * from demo.cloning.employees
+ 
+-- Check the content of the employees_clone table.  The employee with Emp_id  = 100 is still there.
+select * from demo.cloning.employees_clone;
+ 
+ 
+--  Cloning Databases
+
+-- Create a database clone (demo_db_clone) from the original database demo_db
+
+CREATE or replace DATABASE demo_clone CLONE demo;
+ 
+-- Point to the demo_clone database
+use database demo_clone;
+ 
+-- Drop the table employees from the demo_clone database
+drop table demo_clone.cloning.employees;
+ 
+-- Drop the table employees_clone from the demo_clone database
+drop table demo_clone.cloning.employees_clone;
+ 
+-- Showing tables in the demo_clone would show neither the employees table nor the employees_clone table.  They are gone.
+show tables;
+ 
+-- Point to the original demo database
+use database demo;
+use schema cloning
+ 
+-- Showing the tables in the original demo database will show all the tables in that database including the employees and employees_clone tables
+show tables;
+
+-- Cloning Schema
+-- Create a cloned schema from the original cloning schema
+CREATE or replace SCHEMA cloning_clone CLONE cloning;
+
+-- Point to the cloning schema
+use schema cloning;
+ 
+-- Show tables in the original cloning schema.  That should return all the tables in the cloning schema including a table called employees;
+show tables;
+ 
+-- Point to the cloning_clone schema
+use schema cloning_clone;
+ 
+-- Show tables in the cloning_clone schema
+show tables;
+
+-- Drop the table employees_clone in the cloning_clone schema;
+drop table cloning_clone.employees_clone;
+ 
+-- Show tables in the cloning_clone schema.  The result of that command should not have in it a table called employees_clone;
+show tables;
+ 
+-- Point to the original cloning schema  
+use schema cloning;
+ 
+-- The result of that command should include in it the table called employees_clone since it was dropped from the clone schema and not the original cloning schema.
+show tables;
+
+--table swap
+
+ALTER TABLE  emp_prod SWAP WITH emp_fdev
+
