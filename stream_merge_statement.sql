@@ -15,9 +15,7 @@ insert into source_table values (3, 'Jerry');
 insert into source_table values (4, 'phill');
 insert into source_table values (5, 'larry');
 
-update source_table set name ='David' where id=0
 
-delete from source_table where id=0
 
 select * from source_table
 -- Create consumer table
@@ -38,13 +36,13 @@ when matched and metadata$isupdate='TRUE' then update set rec_version=rec_versio
 when not matched then insert  (id,name,stream_type,rec_version,REC_DATE) 
 values(s.id, s.name, metadata$action,0,CURRENT_TIMESTAMP() )
 
-
-
-
-
 select * from source_table --3
 select * from my_stream
 select * from target_table
+
+update source_table set name ='David' where id=0
+
+delete from source_table where id=0
 
 
 select SYSTEM$STREAM_HAS_DATA('my_stream')
